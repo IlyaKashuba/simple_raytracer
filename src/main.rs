@@ -1,27 +1,26 @@
 pub mod vec3;
 pub mod color;
 pub mod ray;
-
+pub mod objects;
+pub mod util;
 
 use vec3::{Vec3, Point3};
 use color::Color;
 use ray::Ray;
 
-fn ray_color(ray: &Ray) -> Color {
-    let sphere_center = Point3::new(0.0, 0.0, -1.0);
-    let t = hit_sphere(sphere_center, 0.5, &ray);
-    if t > 0.0 {
-        let n: Vec3 = (ray.at(t) - sphere_center).unit_length();
-        return 0.5 * Color::new(n.x + 1.0, n.y + 1.0, n.z + 1.0); 
+use objects::{HittableList, Sphere, Hittable};
+
+fn ray_color(ray: &Ray, world: &impl Hittable) -> Color {
+    if let Some(hit_record) = world.hit(&ray, 0.0, f32::INFINITY) {
+        return 0.5 * (hit_record.normal + Color::new(1.0, 1.0, 1.0));
     }
 
     let unit_direction = ray.dir.unit_length();
     let a = 0.5 * (unit_direction.y + 1.0);
-
     return (1.0 - a)*Color::new(1.0, 1.0, 1.0) + a*Color::new(0.5, 0.7, 1.0);
 }
 
-fn hit_sphere(center: Point3, radius: f32, r: &Ray) -> f32 {
+/*fn hit_sphere(center: Point3, radius: f32, r: &Ray) -> f32 {
     let oc = center - r.origin;
 
     let a = r.dir.length();
@@ -34,7 +33,10 @@ fn hit_sphere(center: Point3, radius: f32, r: &Ray) -> f32 {
     } else {
         return (h - discriminant.sqrt()) / a;
     }
-}
+}*/
+
+
+
 
 
 
@@ -48,6 +50,12 @@ fn main() {
     let mut image_height = (image_width as f32 / aspect_ratio) as i32;
     image_height = if image_height < 1 {1} else {image_height};
 
+
+    let mut world = HittableList {objects: Vec::new()};
+    
+    world.objects.push(Box::new(Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0)));
+    world.objects.push(Box::new(Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5)));
+    
     //camera
     let focal_length = 1.0;
     let viewport_height = 2.0;
@@ -79,7 +87,7 @@ fn main() {
             let ray_direction = pixel_center - camera_center;
             let r = Ray::new(camera_center, ray_direction);
 
-            let pixel_color = ray_color(&r);
+            let pixel_color = ray_color(&r, &world);
             color::write_color(&pixel_color);
 
             
