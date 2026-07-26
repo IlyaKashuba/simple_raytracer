@@ -47,7 +47,42 @@ impl Vec3 {
             }
         }
 
+        pub fn random() -> Vec3{
+        Vec3 {
+            x: rand::random(),
+            y: rand::random(),
+            z: rand::random(),
+        }
     }
+
+    pub fn random_range(min: f32, max: f32) -> Vec3{
+        Vec3 {
+            x: rand::random_range(min..max),
+            y: rand::random_range(min..max),
+            z: rand::random_range(min..max),
+        }
+    }
+
+    pub fn random_unit_vector() -> Vec3{
+        loop {
+            let p = Vec3::random();
+            let lensq = p.length();
+            if 1e-10 <= lensq && lensq <= 1.0 {
+                return p / lensq.sqrt();
+            }
+        }
+    }
+
+    pub fn random_on_hemisphere(normal: &Vec3) -> Vec3 {
+        let on_unit_sphere = Vec3::random_unit_vector();
+        if Vec3::dot(&on_unit_sphere, &normal) > 0.0 {
+            return on_unit_sphere;
+        }
+        else {
+            return -on_unit_sphere;
+        }
+    }
+}
 
     impl Add for Vec3 {
         type Output = Vec3;
@@ -135,6 +170,19 @@ impl Mul<Vec3> for f32 {
 }
 
 impl Mul<Vec3> for i32 {
+    type Output = Vec3;
+    fn mul(self, rhs: Vec3) -> Self::Output {
+        let n = self as f32;
+
+        Self::Output {
+            x: n * rhs.x,
+            y: n * rhs.y,
+            z: n * rhs.z,
+        }
+    }
+}
+
+impl Mul<Vec3> for u32 {
     type Output = Vec3;
     fn mul(self, rhs: Vec3) -> Self::Output {
         let n = self as f32;
