@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::{ray::Ray, util::Interval, vec3::{Point3, Vec3}};
+use crate::{color, material::{Lambertian, Material}, ray::Ray, util::Interval, vec3::{Point3, Vec3}};
 
 
 pub struct HitRecord {
@@ -8,15 +8,18 @@ pub struct HitRecord {
     pub normal: Vec3,
     pub t: f32,
     pub front_face: bool,
+    //pub mat: &'a dyn Material,
+    pub mat: Rc<dyn Material>,
 }
 
 impl HitRecord {
-    pub fn new(p: Point3, t: f32) -> Self {
+    pub fn new(p: Point3, t: f32, mat: Rc<dyn Material>) -> Self {
         Self {
             p,
             normal: Vec3::new(0.0, 0.0, 0.0),
             t,
             front_face: true,
+            mat
         }
     }
 
@@ -37,11 +40,12 @@ pub trait Hittable {
 pub struct Sphere {
     pub center: Point3,
     pub radius: f32,
+    pub mat: Rc<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(center: Point3, radius: f32) -> Self {
-        Self { center, radius: radius.max(0.0)}
+    pub fn new(center: Point3, radius: f32, mat: Rc<dyn Material>) -> Self {
+        Self { center, radius: radius.max(0.0), mat}
     }
 }
 
@@ -72,7 +76,7 @@ impl Hittable for Sphere {
         let p = ray.at(t);
         let outward_normal = (p - self.center) / self.radius;
         
-        let mut rec = HitRecord::new(p, t);
+        let mut rec = HitRecord::new(p, t, Rc::clone(&self.mat));
         rec.set_face_normal(ray, &outward_normal);
 
         return Some(rec);
@@ -103,6 +107,7 @@ impl Hittable for HittableList {
             normal: Vec3::new(0.0, 0.0, 0.0),
             t: 0.0, 
             front_face: true,
+            mat: Rc::new(Lambertian::new(color::WHITE)),
         };
 
         for object in self.objects.iter() {

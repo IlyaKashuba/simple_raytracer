@@ -1,5 +1,6 @@
 use crate::vec3::Vec3;
 use crate::util::Interval;
+use std::ops::Mul;
 
 pub type Color = Vec3;
 
@@ -27,4 +28,15 @@ pub fn linear_to_gamma(linear_component: f32) -> f32 {
         return linear_component.sqrt();
     }
     return 0.0;
+}
+
+impl Mul<Color> for Color {
+    type Output = Color;
+    fn mul(self, rhs: Color) -> Self::Output {
+        Color {
+            x: self.x * rhs.x,
+            y: self.y * rhs.y,
+            z: self.z * rhs.z,
+        }
+    }
 }
