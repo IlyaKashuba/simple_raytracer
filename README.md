@@ -6,5 +6,6 @@ cargo run >> image.ppm
 
 where image.ppm is the name of the file with resulting image in PPM format
 
-<img width="832" height="465" alt="image" src="https://github.com/user-attachments/assets/ad5b5597-6985-4813-ad35-e4e6b5a8b496" />
+<img width="1502" height="845" alt="image" src="https://github.com/user-attachments/assets/086ed0a5-2278-4aad-9a9f-ed1e90e9cf9b" />
+
 
