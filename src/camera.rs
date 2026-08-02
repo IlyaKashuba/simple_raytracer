@@ -3,7 +3,7 @@ use rand::random_range;
 use crate::objects::{Hittable};
 use crate::color::Color;
 use crate::ray::{Ray};
-use crate::util::Interval;
+use crate::util::{self, Interval};
 use crate::vec3::{Point3, Vec3};
 use crate::color;
 
@@ -15,12 +15,19 @@ pub struct Camera {
     pub image_width: u32,
     pub samples_per_pixel: u32,
     pub max_depth: u32,
+    pub vfov: f32,
+    pub look_from: Point3,
+    pub look_at: Point3,
+    pub vup: Vec3,
     image_height: u32,
     center: Point3,
     pixel00_loc: Point3,
     pixel_delta_u: Vec3,
     pixel_delta_v: Vec3,
     pixel_samples_scale: f32, //color scale factor for a sum of pixel samples
+    u: Vec3,
+    v: Vec3,
+    w: Vec3,
 }
 
 impl Camera {
@@ -30,12 +37,19 @@ impl Camera {
             image_width, 
             samples_per_pixel: 10,
             max_depth: 10,
+            vfov: 90.0,
+            look_from: Point3::new(0.0, 0.0, 0.0),
+            look_at: Point3::new(0.0, 0.0, -1.0),
+            vup: Vec3::new(0.0, 1.0, 0.0),
             image_height: 0,
             center: Point3::new(0.0, 0.0, 0.0),
             pixel00_loc: Vec3::new(0.0, 0.0, 0.0),
             pixel_delta_u: Point3::new(0.0, 0.0, 0.0),
             pixel_delta_v: Point3::new(0.0, 0.0, 0.0),
             pixel_samples_scale: 1.0,
+            v: Vec3::new(0.0, 0.0, 0.0),
+            u: Vec3::new(0.0, 0.0, 0.0),
+            w: Vec3::new(0.0, 0.0, 0.0),
         }
     }
 
@@ -63,24 +77,30 @@ impl Camera {
 
         self.pixel_samples_scale = 1.0 / self.samples_per_pixel as f32;
 
+        self.center = self.look_from;
         
         //camera
-        let focal_length = 1.0;
-        let viewport_height = 2.0;
+        let focal_length = (self.look_from - self.look_at).length();
+        let theta = util::degrees_to_radians(self.vfov);
+        let h = (theta / 2.0).tan();
+        let viewport_height = 2.0 * h * focal_length;
         let viewport_width = viewport_height * (self.image_width as f32 / self.image_height as f32);
-        let camera_center = Point3::new(0.0, 0.0, 0.0); 
+        
+        self.w = (self.look_from - self.look_at).unit_length();
+        self.u = Vec3::cross(&self.vup, &self.w).unit_length();
+        self.v = Vec3::cross(&self.w, &self.u);
+
 
         // Calculate the vectors across the horizontal and down the vertical viewport edges.
-        let viewport_u = Vec3::new(viewport_width, 0.0, 0.0);
-        let viewport_v = Vec3::new(0.0, -viewport_height, 0.0);
+        let viewport_u = viewport_width * self.u;
+        let viewport_v = viewport_height * -self.v;
 
         // Calculate the horizontal and vertical delta vectors from pixel to pixel.
         self.pixel_delta_u = viewport_u / self.image_width as f32;
         self.pixel_delta_v = viewport_v / self.image_height as f32;
 
         // Calculate the location of the upper left pixel.
-        let viewport_upper_left = camera_center - Vec3::new(0.0, 0.0, focal_length) 
-            - (viewport_u/2.0) - viewport_v/2.0;
+        let viewport_upper_left = self.center - focal_length * self.w - viewport_u / 2.0 - viewport_v / 2.0;            
         self.pixel00_loc = viewport_upper_left + 0.5 * (self.pixel_delta_u + self.pixel_delta_v);
         
 

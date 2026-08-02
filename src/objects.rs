@@ -52,9 +52,9 @@ impl Sphere {
 impl Hittable for Sphere {
     fn hit(&self, ray: &Ray, ray_t: &Interval) -> Option<HitRecord> {
         let oc = self.center - ray.origin;
-        let a = ray.dir.length();
+        let a = ray.dir.length_squared();
         let h = Vec3::dot(&ray.dir, &oc);
-        let c = oc.length() - self.radius * self.radius;
+        let c = oc.length_squared() - self.radius * self.radius;
         let discriminant = h*h - a*c;
 
         if discriminant < 0.0 {
@@ -111,7 +111,7 @@ impl Hittable for HittableList {
         };
 
         for object in self.objects.iter() {
-            if let Some(hit) = object.hit(&ray, ray_t) {
+            if let Some(hit) = object.hit(&ray, &Interval::new(ray_t.min, closest_so_far)) {
                 hit_anything = true;
                 closest_so_far = hit.t;
                 hr = hit;

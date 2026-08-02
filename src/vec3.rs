@@ -18,22 +18,26 @@ impl Vec3 {
         }
     }
 
-        pub fn length(&self) -> f32 {
-            return self.x * self.x + self.y * self.y + self.z * self.z;
-        }
+    pub fn length(&self) -> f32 {
+        return self.length_squared().sqrt();
+    }
+    
+    pub fn length_squared(&self) -> f32 {
+        return self.x * self.x + self.y * self.y + self.z * self.z;
+    }
 
-        pub fn normalize(&mut self) {
-           *self /= self.length(); 
-        }
+    pub fn normalize(&mut self) {
+       *self /= self.length(); 
+    }
 
-        pub fn unit_length(&self) -> Self {
-            let length = self.length();
-            Self {
-                x: self.x / length,
-                y: self.y / length,
-                z: self.z / length,
-            }
+    pub fn unit_length(&self) -> Self {
+        let length = self.length();
+        Self {
+            x: self.x / length,
+            y: self.y / length,
+            z: self.z / length,
         }
+    }
     
         pub fn dot(u: &Vec3, v: &Vec3) -> f32{
             return u.x * v.x + u.y * v.y + u.z * v.z;
@@ -66,7 +70,7 @@ impl Vec3 {
     pub fn random_unit_vector() -> Vec3{
         loop {
             let p = Vec3::random();
-            let lensq = p.length();
+            let lensq = p.length_squared();
             if 1e-10 <= lensq && lensq <= 1.0 {
                 return p / lensq.sqrt();
             }
@@ -93,9 +97,9 @@ impl Vec3 {
     }
 
     pub fn refract(uv: &Vec3, n: &Vec3, etai_over_etat: f32) -> Vec3 {
-        let cos_theta = Vec3::dot(&-uv, n).min(1.0);
+        let cos_theta = Vec3::dot(&-(*uv), n).min(1.0);
         let r_out_perp = etai_over_etat * (*uv + cos_theta * *n);
-        let r_out_parallel = -((1.0 - r_out_perp.length()).abs().sqrt()) * *n;
+        let r_out_parallel = -((1.0 - r_out_perp.length_squared()).abs().sqrt()) * *n;
         return r_out_perp + r_out_parallel;
     }
 }
@@ -277,13 +281,13 @@ impl Neg for Vec3 {
     }
 }
 
-impl Neg for &Vec3 {
+/*impl Neg for &Vec3 {
     type Output = Vec3;
     fn neg(self) -> Self::Output {
-        Vec3 {
+        /*Vec3 {
             x: -self.x,
             y: -self.y,
             z: -self.z,
-        }
+        }*/
     }
-}
+}*/
