@@ -6,4 +6,5 @@ cargo run >> image.ppm
 
 where image.ppm is the name of the file with resulting image in PPM format
 
-<img width="400" height="225" alt="image" src="https://github.com/IlyaKashuba/simple_raytracer/image.ppm"/>
+<img width="832" height="465" alt="image" src="https://github.com/user-attachments/assets/ad5b5597-6985-4813-ad35-e4e6b5a8b496" />
+
