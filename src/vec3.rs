@@ -2,6 +2,8 @@
 
 use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Sub, SubAssign, Neg};
 
+use rand::random_range;
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Vec3 {
     pub x: f32,
@@ -73,6 +75,15 @@ impl Vec3 {
             let lensq = p.length_squared();
             if 1e-10 <= lensq && lensq <= 1.0 {
                 return p / lensq.sqrt();
+            }
+        }
+    }
+
+    pub fn random_in_unit_disk() -> Vec3 {
+        loop {
+            let p = Vec3::new(random_range(-1.0..1.0), random_range(-1.0..1.0), 0.0);
+            if p.length_squared() < 1.0 {
+                return p;
             }
         }
     }
