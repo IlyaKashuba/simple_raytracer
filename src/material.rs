@@ -1,4 +1,4 @@
-use rand::{random, random_range};
+use rand::{random_range};
 
 use crate::{color::{self, Color}, objects::HitRecord, ray::Ray, vec3::Vec3};
 

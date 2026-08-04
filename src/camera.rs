@@ -1,5 +1,6 @@
 use rand::random_range;
 
+use crate::image::Image;
 use crate::objects::{Hittable};
 use crate::color::Color;
 use crate::ray::{Ray};
@@ -64,7 +65,7 @@ impl Camera {
     pub fn render(&mut self, world: &impl Hittable) {
         self.initialize();
 
-        println!("P3\n{} {}\n255", self.image_width, self.image_height);
+        let mut resulting_image = Image::create(String::from("image.ppm"), self.image_width, self.image_height, crate::image::FileFormat::PPM);
 
         for i in 0..self.image_height {
             for j in 0..self.image_width {
@@ -74,9 +75,11 @@ impl Camera {
                     let ray: Ray = self.get_ray(j, i);
                     pixel_color += self.ray_color(&ray, self.max_depth, world);
                 }
-                color::write_color(&(pixel_color * self.pixel_samples_scale));
+                resulting_image.write_color(j, i, &(pixel_color * self.pixel_samples_scale));
             }
         }
+
+        resulting_image.save();
     }
 
     fn initialize(&mut self) {
