@@ -1,4 +1,6 @@
 use rand::random_range;
+//use rayon::prelude::*;
+//use std::sync::Arc;
 
 use crate::image::Image;
 use crate::objects::{Hittable};
@@ -7,6 +9,7 @@ use crate::ray::{Ray};
 use crate::util::{self, Interval};
 use crate::vec3::{Point3, Vec3};
 use crate::color;
+
 
 //use color::{BLACK, WHITE};
 
@@ -78,6 +81,17 @@ impl Camera {
                 resulting_image.write_color(j, i, &(pixel_color * self.pixel_samples_scale));
             }
         }
+        /*let arc_world = Arc::new(world);
+        (0..self.image_height).into_par_iter().for_each(|y| 
+            (0..self.image_width).into_par_iter().for_each(|x| {
+                let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+                let clone1 = Arc::clone(&arc_world);
+                for _ in 0..self.samples_per_pixel {
+                    let ray: Ray = self.get_ray(x, y);
+                    pixel_color += self.ray_color(&ray, self.max_depth, clone1);
+                }
+                resulting_image.write_color(x, y, &(pixel_color * self.pixel_samples_scale));
+            }));*/
 
         resulting_image.save();
     }
@@ -143,8 +157,9 @@ impl Camera {
 
         let ray_origin = if self.defocus_angle <= 0.0 {self.center} else {self.defocus_disk_sample()};
         let ray_direction = pixel_sample - ray_origin;
+        let ray_time = random_range(0.0..1.0);
 
-        return Ray::new(ray_origin, ray_direction);
+        return Ray::new(ray_origin, ray_direction, ray_time);
     }
 
     fn sample_square(&self) -> Vec3 {

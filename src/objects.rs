@@ -38,20 +38,27 @@ pub trait Hittable {
 
 
 pub struct Sphere {
-    pub center: Point3,
+    pub center: Ray,
     pub radius: f32,
     pub mat: Rc<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(center: Point3, radius: f32, mat: Rc<dyn Material>) -> Self {
+    pub fn new_static(static_center: Point3, radius: f32, mat: Rc<dyn Material>) -> Self {
+        let center = Ray::new(static_center, Vec3::ZERO, 0.0);
+        Self { center, radius: radius.max(0.0), mat}
+    }
+
+    pub fn new_moving(center1: Point3, center2: Point3, radius: f32, mat: Rc<dyn Material>) -> Self {
+        let center = Ray::new(center1, center2 - center1, 0.0);
         Self { center, radius: radius.max(0.0), mat}
     }
 }
 
 impl Hittable for Sphere {
     fn hit(&self, ray: &Ray, ray_t: &Interval) -> Option<HitRecord> {
-        let oc = self.center - ray.origin;
+        let current_center = self.center.at(ray.time);
+        let oc = current_center - ray.origin;
         let a = ray.dir.length_squared();
         let h = Vec3::dot(&ray.dir, &oc);
         let c = oc.length_squared() - self.radius * self.radius;
@@ -74,7 +81,7 @@ impl Hittable for Sphere {
         
         let t = root;
         let p = ray.at(t);
-        let outward_normal = (p - self.center) / self.radius;
+        let outward_normal = (p - current_center) / self.radius;
         
         let mut rec = HitRecord::new(p, t, Rc::clone(&self.mat));
         rec.set_face_normal(ray, &outward_normal);
