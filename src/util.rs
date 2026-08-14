@@ -5,6 +5,7 @@ pub fn degrees_to_radians(degrees: f32) -> f32 {
     return degrees * PI / 180.0;
 }
 
+#[derive(Clone, Copy)]
 pub struct Interval {
     pub min: f32,
     pub max: f32,
@@ -16,6 +17,13 @@ impl Interval {
 
     pub fn new(min: f32, max: f32) -> Self {
         Self {min, max}
+    }
+
+    pub fn from_2(a: &Interval, b: &Interval) -> Self {
+        Self {
+            min: a.min.min(b.min),
+            max: a.max.max(b.max),
+        }
     }
 
     pub fn contains(&self, x: f32) -> bool {
@@ -40,6 +48,10 @@ impl Interval {
         }
     }
 
+    pub fn expand(&self, delta: f32) -> Self {
+        let padding = delta / 2.0;
+        return Interval::new(self.min - padding, self.max + padding);
+    }
 
 }
 

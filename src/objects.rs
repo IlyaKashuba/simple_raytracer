@@ -1,8 +1,9 @@
-use std::rc::Rc;
+use std::rc::{self, Rc};
 
-use crate::{color, material::{Lambertian, Material}, ray::Ray, util::Interval, vec3::{Point3, Vec3}};
+use crate::{aabb::Aabb, color, material::{Lambertian, Material}, ray::Ray, util::Interval, vec3::{Point3, Vec3}};
 
 
+//#[derive(PartialEq)]
 pub struct HitRecord {
     pub p: Point3,
     pub normal: Vec3,
@@ -34,6 +35,7 @@ impl HitRecord {
 
 pub trait Hittable {
     fn hit(&self, ray: &Ray, ray_t: &Interval) -> Option<HitRecord>;
+    fn boinding_box(&self) -> &Aabb;
 }
 
 
@@ -41,17 +43,26 @@ pub struct Sphere {
     pub center: Ray,
     pub radius: f32,
     pub mat: Rc<dyn Material>,
+    bbox: Aabb,
 }
 
 impl Sphere {
     pub fn new_static(static_center: Point3, radius: f32, mat: Rc<dyn Material>) -> Self {
         let center = Ray::new(static_center, Vec3::ZERO, 0.0);
-        Self { center, radius: radius.max(0.0), mat}
+        let rvec = Vec3::new(radius, radius, radius);
+        let bbox = Aabb::from_points(static_center - rvec, static_center + rvec);
+
+        Self { center, radius: radius.max(0.0), mat, bbox}
     }
 
     pub fn new_moving(center1: Point3, center2: Point3, radius: f32, mat: Rc<dyn Material>) -> Self {
         let center = Ray::new(center1, center2 - center1, 0.0);
-        Self { center, radius: radius.max(0.0), mat}
+        let rvec = Vec3::new(radius, radius, radius);
+        let box1 = Aabb::from_points(center.at(0.0) - rvec, center.at(0.0) + rvec);
+        let box2 = Aabb::from_points(center.at(1.0) - rvec, center.at(1.0) + rvec);
+        let bbox = Aabb::from_2(&box1, &box2);
+
+        Self { center, radius: radius.max(0.0), mat, bbox}
     }
 }
 
@@ -89,20 +100,32 @@ impl Hittable for Sphere {
         return Some(rec);
 
     }
+
+    fn boinding_box(&self) -> &Aabb {
+        &self.bbox
+    }
 }
 
 pub struct HittableList {
     pub objects: Vec<Box<dyn Hittable>>, //maybe Rc
+    bbox: Aabb,
 }
 
 impl HittableList {
-    pub fn new() -> Self {
-        Self { objects: Vec::new() }
+    pub fn new_empty() -> Self {
+        Self { objects: Vec::new(), bbox: Aabb::new(Interval::EMPTY, Interval::EMPTY, Interval::EMPTY) }
     }
 
-    /*pub fn add(&mut self, object: Box<dyn Hittable>) {
-        self.objects.push(Box::new(object))
-    }*/
+    pub fn add/*<T: , Hittable>*/(&mut self, object: impl Hittable + 'static) {
+        self.bbox = Aabb::from_2(&self.bbox, &object.boinding_box());
+        self.objects.push(Box::new(object));
+    }
+
+    pub fn new(obj: Box<dyn Hittable>) -> Self {
+        Self {
+            bbox: obj.boinding_box().clone(), objects: vec![obj]
+        }
+    }
 }
 
 impl Hittable for HittableList {
@@ -126,5 +149,9 @@ impl Hittable for HittableList {
         }
 
         if hit_anything { Some(hr) } else {None}
+    }
+
+    fn boinding_box(&self) -> &Aabb {
+        return &self.bbox;
     }
 }
