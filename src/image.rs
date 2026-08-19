@@ -1,6 +1,7 @@
 use std::fmt::format;
 use std::fs::File;
 use std::io::Write;
+use std::str::Bytes;
 use std::vec;
 
 use crate::color::{self, BLACK, Color, linear_to_gamma};

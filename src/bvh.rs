@@ -1,10 +1,9 @@
 use std::cmp::Ordering;
 use std::rc::Rc;
 
-use rand::random_range;
 
 use crate::objects::Hittable;
-use crate::aabb::{self, Aabb};
+use crate::aabb::{Aabb};
 use crate::util::Interval;
 
 

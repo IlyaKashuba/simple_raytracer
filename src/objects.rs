@@ -1,6 +1,7 @@
+use core::f32;
 use std::rc::{self, Rc};
 
-use crate::{aabb::Aabb, color, material::{Lambertian, Material}, ray::Ray, util::Interval, vec3::{Point3, Vec3}};
+use crate::{aabb::Aabb, color, material::{Lambertian, Material}, ray::Ray, texture::TexCoords, util::Interval, vec3::{Point3, Vec3}};
 
 
 //#[derive(PartialEq)]
@@ -8,6 +9,7 @@ pub struct HitRecord {
     pub p: Point3,
     pub normal: Vec3,
     pub t: f32,
+    pub uv: TexCoords,
     pub front_face: bool,
     //pub mat: &'a dyn Material,
     pub mat: Rc<dyn Material>,
@@ -19,6 +21,7 @@ impl HitRecord {
             p,
             normal: Vec3::new(0.0, 0.0, 0.0),
             t,
+            uv: TexCoords(0.0, 0.0),
             front_face: true,
             mat
         }
@@ -64,6 +67,15 @@ impl Sphere {
 
         Self { center, radius: radius.max(0.0), mat, bbox}
     }
+
+    fn get_sphere_uv(p: &Point3) -> TexCoords {
+        let theta = (-p.y).acos();
+        let phi = f32::atan2(-p.z, p.x) + f32::consts::PI;
+
+        let u = phi / (2.0 * f32::consts::PI);
+        let v = theta / f32::consts::PI;
+        return TexCoords(u, v);
+    }
 }
 
 impl Hittable for Sphere {
@@ -96,7 +108,8 @@ impl Hittable for Sphere {
         
         let mut rec = HitRecord::new(p, t, Rc::clone(&self.mat));
         rec.set_face_normal(ray, &outward_normal);
-
+        rec.uv = Sphere::get_sphere_uv(&outward_normal);
+        
         return Some(rec);
 
     }
@@ -136,8 +149,9 @@ impl Hittable for HittableList {
             p: Point3::new(0.0, 0.0, 0.0),
             normal: Vec3::new(0.0, 0.0, 0.0),
             t: 0.0, 
+            uv: TexCoords(0.0, 0.0),
             front_face: true,
-            mat: Rc::new(Lambertian::new(color::WHITE)),
+            mat: Rc::new(Lambertian::from_color(color::WHITE)),
         };
 
         for object in self.objects.iter() {

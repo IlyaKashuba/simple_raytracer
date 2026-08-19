@@ -1,18 +1,24 @@
 use rand::{random_range};
+use std::rc::Rc;
 
 use crate::{color::{self, Color}, objects::HitRecord, ray::Ray, vec3::Vec3};
+use crate::texture::Texture;
 
 pub trait Material {
     fn scatter(&self, ray_in: &Ray, hit_rec: &HitRecord) -> Option<(Ray, Color)>;
 }
 
 pub struct Lambertian {
-    pub albedo: Color,
+    pub texture: Rc<Texture>,
 }
 
 impl Lambertian {
-    pub fn new(albedo: Color) -> Self {
-        Self { albedo }
+    pub fn from_color(albedo: Color) -> Self {
+        Self { texture: Rc::new(Texture::solid_color(albedo)) }
+    }
+
+    pub fn from_texture(texture: Rc<Texture>) -> Self {
+        Self {texture}
     }
 }
 
@@ -25,9 +31,9 @@ impl Material for Lambertian {
         }
 
         let scattered = Ray::new(hit_rec.p, scatter_direction, ray_in.time);
-        let attenuation = self.albedo;
+        let attenuation = self.texture.value(hit_rec.uv, &hit_rec.p);
         
-        return Some((scattered, attenuation));
+        return Some((scattered, attenuation.1));
     }
 }
 
