@@ -1,7 +1,9 @@
+use crate::perlin_noise::Perlin;
 use crate::{color::Color, util::Interval};
 use crate::vec3::Point3;
 use std::{ rc::Rc};
 use image::{DynamicImage, GenericImageView, Rgba};
+use crate::color;
 
 #[derive(Clone, Copy, Debug)]
 pub struct TexCoords(pub f32, pub f32);
@@ -10,6 +12,7 @@ pub enum Texture {
     SolidColorTerxture {albedo: Color},
     CheckerTexture {inv_scale: f32, even: Rc<Texture>, odd: Rc<Texture>},
     ImageTexture {img: DynamicImage},
+    NoiseTexture {noise: Perlin},
 }
 
 impl Texture {
@@ -38,11 +41,14 @@ impl Texture {
                 let v = Interval::new(0.0, 1.0).clamp(tex_coords.1);
 
                 let i = (img.width() as f32 * u) as u32;
-                let j = (img.width() as f32 * v) as u32;
+                let j = (img.height() as f32 * v) as u32;
                 let pixel = get_pixel_at_xy(&img, i, j);
                 //let image::Rgb(data) = *pixel;
                 let color = Color::new(pixel[0] as f32 / 255.0, pixel[1] as f32 / 255.0, pixel[2] as f32 / 255.0);
                 return (TexCoords(0.0, 0.0), color);
+            }
+            Texture::NoiseTexture { noise } => {
+                return (TexCoords(0.0, 0.0), color::WHITE * noise.noise(&p));
             }
         }
     }
@@ -65,11 +71,11 @@ impl Texture {
         Texture::ImageTexture { img: texture_image }
     }
 
-}
+    pub fn noise_texture(noise: Perlin) -> Self {
+        Texture::NoiseTexture { noise }
+    }
 
-/*pub struct SolidColorTerxture {
-    pub albedo: Color
-}*/
+}
 
 fn clamp(x: u32, low: u32, high: u32) -> u32 {
     if x < low { 

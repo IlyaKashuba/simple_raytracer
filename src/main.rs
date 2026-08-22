@@ -9,6 +9,7 @@ pub mod image;
 pub mod aabb;
 pub mod bvh;
 pub mod texture;
+pub mod perlin_noise;
 
 use rand::random_range;
 use vec3::{Point3, Vec3};
@@ -16,7 +17,7 @@ use color::Color;
 
 use objects::{HittableList, Sphere};
 use std::rc::Rc;
-use crate::{camera::Camera, material::{Dielectric, Lambertian, Material, Metal}, texture::Texture};
+use crate::{camera::Camera, material::{Dielectric, Lambertian, Material, Metal}, perlin_noise::Perlin, texture::Texture};
 
 
 fn bouncing_spheres() {
@@ -144,11 +145,40 @@ fn earth() {
 
 }
 
+fn perlin_spheres() {
+    let mut world = HittableList::new_empty();
+
+    let pertext = Rc::new(Texture::noise_texture(Perlin::new()));
+    let mat: Rc<dyn Material> = Rc::new(Lambertian::from_texture(pertext));
+    world.add(Sphere::new_static(Point3::new(0.0, -1000.0, 0.0), 1000.0, Rc::clone(&mat)));
+    world.add(Sphere::new_static(Point3::new(0.0, 2.0, 0.0), 2.0, Rc::clone(&mat)));
+    
+    
+
+
+    let mut cam = Camera::new(16.0 / 9.0, 400);
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.image_width = 400; //1200
+    cam.samples_per_pixel = 10; //100
+    cam.max_depth = 50;
+
+
+    cam.vfov = 20.0;
+    cam.look_from = Point3::new(13.0, 2.0, 3.0);
+    cam.look_at = Point3::new(0.0, 0.0, 0.0);
+    cam.vup = Vec3::new(0.0, 1.0, 0.0);
+
+    cam.defocus_angle = 0.0;
+    
+    cam.render(&world);
+}
+
 pub fn main() {
-    match 3 {
+    match 4 {
         1 => bouncing_spheres(),
         2 => checkered_spheres(),
         3 => earth(),
+        4 => perlin_spheres(),
         _ => bouncing_spheres(),
     };
     
