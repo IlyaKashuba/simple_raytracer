@@ -5,7 +5,6 @@ pub mod objects;
 pub mod util;
 pub mod camera;
 pub mod material;
-pub mod image;
 pub mod aabb;
 pub mod bvh;
 pub mod texture;

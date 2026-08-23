@@ -1,5 +1,6 @@
 use crate::vec3::Vec3;
 use std::ops::Mul;
+use crate::util::Interval;
 
 pub type Color = Vec3;
 
@@ -23,4 +24,21 @@ impl Mul<Color> for Color {
             z: self.z * rhs.z,
         }
     }
+}
+
+pub fn to_rgb8(pixel_color: Color) -> [u8; 3] {
+    let r = linear_to_gamma(pixel_color.x);
+    let g = linear_to_gamma(pixel_color.y);
+    let b = linear_to_gamma(pixel_color.z);
+
+    let intensity = Interval::new(0.0, 0.999);
+        /*let r = (intensity.clamp(r) * 256.0) as i32;
+        let g = (intensity.clamp(g) * 256.0) as i32;
+        let b = (intensity.clamp(b) * 256.0) as i32;*/
+
+    let r = (intensity.clamp(r) * 256.0) as u8;
+    let g = (intensity.clamp(g) * 256.0) as u8;
+    let b = (intensity.clamp(b) * 256.0) as u8;
+    //return [(pixel_color.x * 256.0) as u8, (pixel_color.y * 256.0) as u8, (pixel_color.z * 256.0) as u8];
+    return [r, g, b];
 }

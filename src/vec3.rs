@@ -22,6 +22,10 @@ impl Vec3 {
         }
     }
 
+    pub fn to_array(self) -> [f32; 3] {
+        return [self.x, self.y, self.z];
+    } 
+
     pub fn length(&self) -> f32 {
         return self.length_squared().sqrt();
     }

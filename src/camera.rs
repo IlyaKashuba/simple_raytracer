@@ -1,17 +1,15 @@
+use image::metadata::Cicp;
 use rand::random_range;
-//use rayon::prelude::*;
+use image::{DynamicImage, GenericImageView, Rgba};
+use rayon::prelude::*;
 //use std::sync::Arc;
 
-use crate::image::Image;
 use crate::objects::{Hittable};
 use crate::color::Color;
 use crate::ray::{Ray};
 use crate::util::{self, Interval};
 use crate::vec3::{Point3, Vec3};
 use crate::color;
-
-
-//use color::{BLACK, WHITE};
 
 
 pub struct Camera {
@@ -68,7 +66,7 @@ impl Camera {
     pub fn render(&mut self, world: &impl Hittable) {
         self.initialize();
 
-        let mut resulting_image = Image::create(String::from("image.ppm"), self.image_width, self.image_height, crate::image::FileFormat::PPM);
+        /*let mut resulting_image = Image::create(String::from("image.ppm"), self.image_width, self.image_height, crate::image::FileFormat::PPM);
 
         for i in 0..self.image_height {
             for j in 0..self.image_width {
@@ -80,20 +78,36 @@ impl Camera {
                 }
                 resulting_image.write_color(j, i, &(pixel_color * self.pixel_samples_scale));
             }
-        }
-        /*let arc_world = Arc::new(world);
-        (0..self.image_height).into_par_iter().for_each(|y| 
-            (0..self.image_width).into_par_iter().for_each(|x| {
+        }*/
+        /*let mut image = image::RgbImage::new(self.image_width, self.image_height);
+        for i in 0..self.image_height {
+            for j in 0..self.image_width {
+                
                 let mut pixel_color = Color::new(0.0, 0.0, 0.0);
-                let clone1 = Arc::clone(&arc_world);
+                for _ in 0..self.samples_per_pixel {
+                    let ray: Ray = self.get_ray(j, i);
+                    pixel_color += self.ray_color(&ray, self.max_depth, world);
+                }
+                //resulting_image.write_color(j, i, &(pixel_color * self.pixel_samples_scale));
+                image.get_pixel_mut(j, i).0 = color::to_rgb8(pixel_color);
+            }
+        }
+        image.save_with_format("image.png", image::ImageFormat::Png).unwrap();*/
+
+        let mut imgbuf = image::ImageBuffer::new(self.image_width, self.image_height);
+        
+
+        for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
+
+            let mut pixel_color = Color::new(0.0, 0.0, 0.0);
                 for _ in 0..self.samples_per_pixel {
                     let ray: Ray = self.get_ray(x, y);
-                    pixel_color += self.ray_color(&ray, self.max_depth, clone1);
+                    pixel_color += self.ray_color(&ray, self.max_depth, world);
                 }
-                resulting_image.write_color(x, y, &(pixel_color * self.pixel_samples_scale));
-            }));*/
 
-        resulting_image.save();
+            *pixel = image::Rgb(color::to_rgb8(pixel_color * self.pixel_samples_scale));
+        }
+        imgbuf.save("image.png").unwrap();
     }
 
     fn initialize(&mut self) {
