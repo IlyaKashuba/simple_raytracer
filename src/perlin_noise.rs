@@ -13,7 +13,7 @@ pub struct Perlin {
 
 impl Perlin {
     fn permute(p: &mut Vec<u32>) {
-        for i in (0..POINT_COUNT-1).rev() {
+        for i in (0..POINT_COUNT).rev() {
             let target = random_range(0..=i);
             p.swap(i, target);
         }
@@ -52,18 +52,18 @@ impl Perlin {
         let v = p.y - p.y.floor();
         let w = p.z - p.z.floor();
 
-        let i = p.x.floor() as usize;
-        let j = p.y.floor() as usize;
-        let k = p.z.floor() as usize;
+        let i = p.x.floor() as i32;
+        let j = p.y.floor() as i32;
+        let k = p.z.floor() as i32;
 
         let mut c = [[[Vec3::ZERO; 2]; 2]; 2];
         for di in 0..2 {
             for dj in 0..2 {
                 for dk in 0..2 {
-                    c[di][dj][dk] = self.randvec[
-                        (self.perm_x[(i+di) & 255] ^ 
-                        self.perm_y[(j+dj) & 255] ^
-                        self.perm_z[(k+dk) & 255]) as usize
+                    c[di as usize][dj as usize][dk as usize] = self.randvec[
+                        (self.perm_x[((i+di) & 255) as usize] ^ 
+                        self.perm_y[((j+dj) & 255) as usize] ^
+                        self.perm_z[((k+dk) & 255) as usize]) as usize
                     ];
                 }
             }
