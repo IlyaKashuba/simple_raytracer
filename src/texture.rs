@@ -1,16 +1,15 @@
 use crate::perlin_noise::Perlin;
 use crate::{color::Color, util::Interval};
 use crate::vec3::Point3;
-use std::{ rc::Rc};
+use std::sync::Arc;
 use image::{DynamicImage, GenericImageView, Rgba};
-use crate::color;
 
 #[derive(Clone, Copy, Debug)]
 pub struct TexCoords(pub f32, pub f32);
 
 pub enum Texture {
     SolidColorTerxture {albedo: Color},
-    CheckerTexture {inv_scale: f32, even: Rc<Texture>, odd: Rc<Texture>},
+    CheckerTexture {inv_scale: f32, even: Arc<Texture>, odd: Arc<Texture>},
     ImageTexture {img: DynamicImage},
     NoiseTexture {noise: Perlin, scale: f32},
 }
@@ -60,8 +59,8 @@ impl Texture {
     pub fn checker_texture(scale: f32, c1: Color, c2: Color) -> Texture {
         Self::CheckerTexture { 
             inv_scale: scale, 
-            even: Rc::new(Texture::SolidColorTerxture { albedo: c1 }), 
-            odd: Rc::new(Texture::SolidColorTerxture { albedo: c2 }) 
+            even: Arc::new(Texture::SolidColorTerxture { albedo: c1 }), 
+            odd: Arc::new(Texture::SolidColorTerxture { albedo: c2 }) 
         }
     }
 

@@ -1,8 +1,7 @@
-use image::metadata::Cicp;
 use rand::random_range;
-use image::{DynamicImage, GenericImageView, Rgba};
+use image::{Rgb};
 use rayon::prelude::*;
-//use std::sync::Arc;
+//use std::sync::
 
 use crate::objects::{Hittable};
 use crate::color::Color;
@@ -63,38 +62,32 @@ impl Camera {
         }
     }
 
-    pub fn render(&mut self, world: &impl Hittable) {
+    pub fn render(&mut self, world: &(impl Hittable + Sync + Send)) {
         self.initialize();
 
-        /*let mut resulting_image = Image::create(String::from("image.ppm"), self.image_width, self.image_height, crate::image::FileFormat::PPM);
 
-        for i in 0..self.image_height {
-            for j in 0..self.image_width {
-                
+        let row_pixels: Vec<Vec<u8>> = (0..self.image_height).into_par_iter().map(|y| {
+            let mut row = vec![0u8; (self.image_width * 3) as usize];
+
+            for x in 0..self.image_width {
                 let mut pixel_color = Color::new(0.0, 0.0, 0.0);
                 for _ in 0..self.samples_per_pixel {
-                    let ray: Ray = self.get_ray(j, i);
+                    let ray: Ray = self.get_ray(x, y);
                     pixel_color += self.ray_color(&ray, self.max_depth, world);
                 }
-                resulting_image.write_color(j, i, &(pixel_color * self.pixel_samples_scale));
-            }
-        }*/
-        /*let mut image = image::RgbImage::new(self.image_width, self.image_height);
-        for i in 0..self.image_height {
-            for j in 0..self.image_width {
-                
-                let mut pixel_color = Color::new(0.0, 0.0, 0.0);
-                for _ in 0..self.samples_per_pixel {
-                    let ray: Ray = self.get_ray(j, i);
-                    pixel_color += self.ray_color(&ray, self.max_depth, world);
-                }
-                //resulting_image.write_color(j, i, &(pixel_color * self.pixel_samples_scale));
-                image.get_pixel_mut(j, i).0 = color::to_rgb8(pixel_color);
-            }
-        }
-        image.save_with_format("image.png", image::ImageFormat::Png).unwrap();*/
+                let rgb = color::to_rgb8(pixel_color * self.pixel_samples_scale);
 
-        let mut imgbuf = image::ImageBuffer::new(self.image_width, self.image_height);
+                let idx = (x * 3) as usize;
+                row[idx] = rgb[0];
+                row[idx+1] = rgb[1];
+                row[idx+2] = rgb[2];
+            } 
+            row
+        }).collect();
+
+        let pixels: Vec<u8> = row_pixels.into_iter().flatten().collect();
+
+        /*let mut imgbuf = image::ImageBuffer::new(self.image_width, self.image_height);
         
 
         for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
@@ -107,6 +100,9 @@ impl Camera {
 
             *pixel = image::Rgb(color::to_rgb8(pixel_color * self.pixel_samples_scale));
         }
+        imgbuf.save("image.png").unwrap();*/
+        
+        let imgbuf: image::ImageBuffer<Rgb<u8>, Vec<u8>> = image::ImageBuffer::from_raw(self.image_width, self.image_height, pixels).unwrap();
         imgbuf.save("image.png").unwrap();
     }
 

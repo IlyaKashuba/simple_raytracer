@@ -1,23 +1,23 @@
 use rand::{random_range};
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::{color::{self, Color}, objects::HitRecord, ray::Ray, vec3::Vec3};
 use crate::texture::Texture;
 
-pub trait Material {
+pub trait Material: Send + Sync {
     fn scatter(&self, ray_in: &Ray, hit_rec: &HitRecord) -> Option<(Ray, Color)>;
 }
 
 pub struct Lambertian {
-    pub texture: Rc<Texture>,
+    pub texture: Arc<Texture>,
 }
 
 impl Lambertian {
     pub fn from_color(albedo: Color) -> Self {
-        Self { texture: Rc::new(Texture::solid_color(albedo)) }
+        Self { texture: Arc::new(Texture::solid_color(albedo)) }
     }
 
-    pub fn from_texture(texture: Rc<Texture>) -> Self {
+    pub fn from_texture(texture: Arc<Texture>) -> Self {
         Self {texture}
     }
 }

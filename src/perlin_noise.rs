@@ -1,4 +1,4 @@
-use rand::{random, random_range};
+use rand::random_range;
 use crate::Point3;
 use crate::Vec3;
 

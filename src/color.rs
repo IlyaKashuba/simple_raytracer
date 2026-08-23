@@ -32,9 +32,6 @@ pub fn to_rgb8(pixel_color: Color) -> [u8; 3] {
     let b = linear_to_gamma(pixel_color.z);
 
     let intensity = Interval::new(0.0, 0.999);
-        /*let r = (intensity.clamp(r) * 256.0) as i32;
-        let g = (intensity.clamp(g) * 256.0) as i32;
-        let b = (intensity.clamp(b) * 256.0) as i32;*/
 
     let r = (intensity.clamp(r) * 256.0) as u8;
     let g = (intensity.clamp(g) * 256.0) as u8;

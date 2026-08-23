@@ -1,5 +1,5 @@
 use core::f32;
-use std::rc::{self, Rc};
+use std::sync::Arc;
 
 use crate::{aabb::Aabb, color, material::{Lambertian, Material}, ray::Ray, texture::TexCoords, util::Interval, vec3::{Point3, Vec3}};
 
@@ -12,11 +12,11 @@ pub struct HitRecord {
     pub uv: TexCoords,
     pub front_face: bool,
     //pub mat: &'a dyn Material,
-    pub mat: Rc<dyn Material>,
+    pub mat: Arc<dyn Material>,
 }
 
 impl HitRecord {
-    pub fn new(p: Point3, t: f32, mat: Rc<dyn Material>) -> Self {
+    pub fn new(p: Point3, t: f32, mat: Arc<dyn Material>) -> Self {
         Self {
             p,
             normal: Vec3::new(0.0, 0.0, 0.0),
@@ -36,7 +36,7 @@ impl HitRecord {
     }
 }
 
-pub trait Hittable {
+pub trait Hittable: Sync + Send{
     fn hit(&self, ray: &Ray, ray_t: &Interval) -> Option<HitRecord>;
     fn boinding_box(&self) -> &Aabb;
 }
@@ -45,12 +45,12 @@ pub trait Hittable {
 pub struct Sphere {
     pub center: Ray,
     pub radius: f32,
-    pub mat: Rc<dyn Material>,
+    pub mat: Arc<dyn Material>,
     bbox: Aabb,
 }
 
 impl Sphere {
-    pub fn new_static(static_center: Point3, radius: f32, mat: Rc<dyn Material>) -> Self {
+    pub fn new_static(static_center: Point3, radius: f32, mat: Arc<dyn Material>) -> Self {
         let center = Ray::new(static_center, Vec3::ZERO, 0.0);
         let rvec = Vec3::new(radius, radius, radius);
         let bbox = Aabb::from_points(static_center - rvec, static_center + rvec);
@@ -58,7 +58,7 @@ impl Sphere {
         Self { center, radius: radius.max(0.0), mat, bbox}
     }
 
-    pub fn new_moving(center1: Point3, center2: Point3, radius: f32, mat: Rc<dyn Material>) -> Self {
+    pub fn new_moving(center1: Point3, center2: Point3, radius: f32, mat: Arc<dyn Material>) -> Self {
         let center = Ray::new(center1, center2 - center1, 0.0);
         let rvec = Vec3::new(radius, radius, radius);
         let box1 = Aabb::from_points(center.at(0.0) - rvec, center.at(0.0) + rvec);
@@ -106,7 +106,7 @@ impl Hittable for Sphere {
         let p = ray.at(t);
         let outward_normal = (p - current_center) / self.radius;
         
-        let mut rec = HitRecord::new(p, t, Rc::clone(&self.mat));
+        let mut rec = HitRecord::new(p, t, Arc::clone(&self.mat));
         rec.set_face_normal(ray, &outward_normal);
         rec.uv = Sphere::get_sphere_uv(&outward_normal);
         
@@ -118,9 +118,8 @@ impl Hittable for Sphere {
         &self.bbox
     }
 }
-
 pub struct HittableList {
-    pub objects: Vec<Box<dyn Hittable>>, //maybe Rc
+    pub objects: Vec<Arc<dyn Hittable>>, //maybe Rc
     bbox: Aabb,
 }
 
@@ -131,10 +130,10 @@ impl HittableList {
 
     pub fn add/*<T: , Hittable>*/(&mut self, object: impl Hittable + 'static) {
         self.bbox = Aabb::from_2(&self.bbox, &object.boinding_box());
-        self.objects.push(Box::new(object));
+        self.objects.push(Arc::new(object));
     }
 
-    pub fn new(obj: Box<dyn Hittable>) -> Self {
+    pub fn new(obj: Arc<dyn Hittable>) -> Self {
         Self {
             bbox: obj.boinding_box().clone(), objects: vec![obj]
         }
@@ -151,7 +150,7 @@ impl Hittable for HittableList {
             t: 0.0, 
             uv: TexCoords(0.0, 0.0),
             front_face: true,
-            mat: Rc::new(Lambertian::from_color(color::WHITE)),
+            mat: Arc::new(Lambertian::from_color(color::WHITE)),
         };
 
         for object in self.objects.iter() {
