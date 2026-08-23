@@ -14,15 +14,19 @@ impl Aabb {
     pub const UNIVERSE: Aabb = Aabb { x: Interval::UNIVERSE, y: Interval::UNIVERSE, z: Interval::UNIVERSE };
 
     pub fn new(x: Interval, y: Interval, z: Interval) -> Self {
-        Self { x, y, z }
+        let mut aabb = Self { x, y, z };
+        aabb.pad_to_minimums();
+        aabb
     }
 
     pub fn from_points(a: Point3, b: Point3) -> Self {
-        Self {
+        let mut aabb = Self {
             x: if a.x < b.x {Interval::new(a.x, b.x)} else {Interval::new(b.x, a.x)},
             y: if a.y < b.y {Interval::new(a.y, b.y)} else {Interval::new(b.y, a.y)},
             z: if a.z < b.z {Interval::new(a.z, b.z)} else {Interval::new(b.z, a.z)},
-        }
+        };
+        aabb.pad_to_minimums();
+        aabb
     }
 
     pub fn from_2(box0: &Aabb, box1: &Aabb) -> Self {
@@ -66,5 +70,12 @@ impl Aabb {
 
     pub fn longest_axis(&self) -> usize {
         todo!();
+    }
+
+    fn pad_to_minimums(&mut self) {
+        let delta = 0.0001;
+        if self.x.size() < delta { self.x = self.x.expand(delta)};
+        if self.y.size() < delta { self.y = self.y.expand(delta)};
+        if self.y.size() < delta { self.y = self.y.expand(delta)};
     }
 }

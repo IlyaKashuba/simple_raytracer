@@ -9,6 +9,7 @@ pub mod aabb;
 pub mod bvh;
 pub mod texture;
 pub mod perlin_noise;
+pub mod quad;
 
 use rand::random_range;
 use vec3::{Point3, Vec3};
@@ -16,7 +17,7 @@ use color::Color;
 
 use objects::{HittableList, Sphere};
 use std::sync::Arc;
-use crate::{camera::Camera, material::{Dielectric, Lambertian, Material, Metal}, perlin_noise::Perlin, texture::Texture};
+use crate::{camera::Camera, material::{Dielectric, Lambertian, Material, Metal}, perlin_noise::Perlin, quad::Quad, texture::Texture};
 
 
 fn bouncing_spheres() {
@@ -169,12 +170,46 @@ fn perlin_spheres() {
     cam.render(&world);
 }
 
+fn quads() {
+    let mut world = HittableList::new_empty();
+
+    let left_red = Arc::new(Lambertian::from_color(Color::new(1.0, 0.2, 0.2)));
+    let back_green = Arc::new(Lambertian::from_color(Color::new(0.2, 1.0, 0.2)));
+    let right_blue = Arc::new(Lambertian::from_color(Color::new(0.2, 0.2, 1.0)));
+    let upper_orange = Arc::new(Lambertian::from_color(Color::new(1.0, 0.5, 0.0)));
+    let lower_teal = Arc::new(Lambertian::from_color(Color::new(0.2, 0.8, 0.8)));
+
+    world.add(Quad::new(Point3::from_i32s(-3, -2, 5), Vec3::from_i32s(0, 0, -4), Vec3::from_i32s(0, 4, 0), left_red));
+    world.add(Quad::new(Point3::from_i32s(-2, -2, 0), Vec3::from_i32s(4, 0, 0), Vec3::from_i32s(0, 4, 0), back_green));
+    world.add(Quad::new(Point3::from_i32s(3, -2, 1), Vec3::from_i32s(0, 0, 4), Vec3::from_i32s(0, 4, 0), right_blue));
+    world.add(Quad::new(Point3::from_i32s(-2, 3, 1), Vec3::from_i32s(4, 0, 0), Vec3::from_i32s(0, 0, 4), upper_orange));
+    world.add(Quad::new(Point3::from_i32s(-2, -3, 5), Vec3::from_i32s(4, 0, 0), Vec3::from_i32s(0, 0, -4), lower_teal));
+
+
+    let mut cam = Camera::new(16.0 / 9.0, 400);
+    cam.aspect_ratio = 1.0;
+    cam.image_width = 400; //1200
+    cam.samples_per_pixel = 10; //100
+    cam.max_depth = 50;
+
+
+    cam.vfov = 80.0;
+    cam.look_from = Point3::from_i32s(0, 0, 9);
+    cam.look_at = Point3::new(0.0, 0.0, 0.0);
+    cam.vup = Vec3::new(0.0, 1.0, 0.0);
+
+    cam.defocus_angle = 0.0;
+    
+    cam.render(&world);
+}
+
 pub fn main() {
-    match 4 {
+    match 5 {
         1 => bouncing_spheres(),
         2 => checkered_spheres(),
         3 => earth(),
         4 => perlin_spheres(),
+        5 => quads(),
         _ => bouncing_spheres(),
     };
     

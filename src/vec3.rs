@@ -22,6 +22,10 @@ impl Vec3 {
         }
     }
 
+    pub fn from_i32s(x: i32, y: i32, z: i32) -> Self {
+        Self { x: x as f32, y: y as f32, z: z as f32 }
+    }
+
     pub fn to_array(self) -> [f32; 3] {
         return [self.x, self.y, self.z];
     } 
