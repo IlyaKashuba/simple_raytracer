@@ -148,7 +148,7 @@ fn earth() {
 fn perlin_spheres() {
     let mut world = HittableList::new_empty();
 
-    let pertext = Rc::new(Texture::noise_texture(Perlin::new()));
+    let pertext = Rc::new(Texture::noise_texture(Perlin::new(), 4.0));
     let mat: Rc<dyn Material> = Rc::new(Lambertian::from_texture(pertext));
     world.add(Sphere::new_static(Point3::new(0.0, -1000.0, 0.0), 1000.0, Rc::clone(&mat)));
     world.add(Sphere::new_static(Point3::new(0.0, 2.0, 0.0), 2.0, Rc::clone(&mat)));

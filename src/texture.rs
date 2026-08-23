@@ -12,14 +12,14 @@ pub enum Texture {
     SolidColorTerxture {albedo: Color},
     CheckerTexture {inv_scale: f32, even: Rc<Texture>, odd: Rc<Texture>},
     ImageTexture {img: DynamicImage},
-    NoiseTexture {noise: Perlin},
+    NoiseTexture {noise: Perlin, scale: f32},
 }
 
 impl Texture {
-    pub fn value(&self, tex_coords: TexCoords, p: &Point3) -> (TexCoords, Color) {
+    pub fn value(&self, tex_coords: TexCoords, p: &Point3) -> Color {
         match self {
             Texture::SolidColorTerxture {albedo} => {
-                return (TexCoords(0.0, 0.0), *albedo);
+                return *albedo;
             }
             Texture::CheckerTexture { inv_scale, even, odd } => {
                 let x_int = (inv_scale * p.x).floor() as i32;
@@ -35,7 +35,7 @@ impl Texture {
                 }
             }
             Texture::ImageTexture { img } => {
-                if img.height() <= 0 { return (TexCoords(0.0, 0.0), Color::new(0.1, 1.0, 1.0));}
+                if img.height() <= 0 { return Color::new(0.1, 1.0, 1.0);}
 
                 let u = Interval::new(0.0, 1.0).clamp(tex_coords.0);
                 let v = Interval::new(0.0, 1.0).clamp(tex_coords.1);
@@ -45,10 +45,10 @@ impl Texture {
                 let pixel = get_pixel_at_xy(&img, i, j);
                 //let image::Rgb(data) = *pixel;
                 let color = Color::new(pixel[0] as f32 / 255.0, pixel[1] as f32 / 255.0, pixel[2] as f32 / 255.0);
-                return (TexCoords(0.0, 0.0), color);
+                return color;
             }
-            Texture::NoiseTexture { noise } => {
-                return (TexCoords(0.0, 0.0), color::WHITE * noise.noise(&p));
+            Texture::NoiseTexture { noise , scale} => {
+                return Color::new(0.5, 0.5, 0.5) * (1.0 + (scale * p.z + 10.0 * noise.turb(p, 7)).sin());
             }
         }
     }
@@ -71,8 +71,8 @@ impl Texture {
         Texture::ImageTexture { img: texture_image }
     }
 
-    pub fn noise_texture(noise: Perlin) -> Self {
-        Texture::NoiseTexture { noise }
+    pub fn noise_texture(noise: Perlin, scale: f32) -> Self {
+        Texture::NoiseTexture { noise, scale }
     }
 
 }

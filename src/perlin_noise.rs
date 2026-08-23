@@ -1,10 +1,11 @@
 use rand::{random, random_range};
 use crate::Point3;
+use crate::Vec3;
 
 const POINT_COUNT: usize = 256;
 
 pub struct Perlin {
-    randfloat: Vec<f32>,
+    randvec: Vec<Vec3>,
     perm_x: Vec<u32>,
     perm_y: Vec<u32>,
     perm_z: Vec<u32>,
@@ -29,13 +30,16 @@ impl Perlin {
     }
 
     pub fn new() -> Self {
-        let mut randfloat = Vec::<f32>::with_capacity(POINT_COUNT);
+        let mut randvec = Vec::<Vec3>::with_capacity(POINT_COUNT);
         for _ in 0..POINT_COUNT {
-            randfloat.push(random_range(0.0..1.0));
+            randvec.push(Vec3::random_range(-1.0, 1.0).unit_length());
         }
 
+        //let perm_x = Self::perlin_generate_perm();
+        //slet
+
         Self {
-            randfloat, 
+            randvec, 
             perm_x: Self::perlin_generate_perm(),
             perm_y: Self::perlin_generate_perm(),
             perm_z: Self::perlin_generate_perm(),
@@ -43,10 +47,71 @@ impl Perlin {
     }
 
     pub fn noise(&self, p: &Point3) -> f32 {
-        let i = (32.0 * p.x) as usize & 255;
-        let j = (32.0 * p.y) as usize & 255;
-        let k = (32.0 * p.z) as usize & 255;
 
-        return self.randfloat[(self.perm_x[i] ^ self.perm_y[j] ^ self.perm_z[k]) as usize];
+        let u = p.x - p.x.floor();
+        let v = p.y - p.y.floor();
+        let w = p.z - p.z.floor();
+
+        let i = p.x.floor() as usize;
+        let j = p.y.floor() as usize;
+        let k = p.z.floor() as usize;
+
+        let mut c = [[[Vec3::ZERO; 2]; 2]; 2];
+        for di in 0..2 {
+            for dj in 0..2 {
+                for dk in 0..2 {
+                    c[di][dj][dk] = self.randvec[
+                        (self.perm_x[(i+di) & 255] ^ 
+                        self.perm_y[(j+dj) & 255] ^
+                        self.perm_z[(k+dk) & 255]) as usize
+                    ];
+                }
+            }
+        }
+
+        return Self::perlin_interp(&c, u, v, w);
+    }
+
+    pub fn debug() {
+        let arr1 = Self::perlin_generate_perm();
+        let arr2 = Self::perlin_generate_perm();
+        println!("{:?}", arr1);
+        println!("{:?}", arr2);
+    }
+
+    pub fn turb(&self, p: &Point3, depth: usize) -> f32 {
+        let mut accum = 0.0;
+        let mut temp_p = p.clone();
+        let mut weight = 1.0;
+
+        for _ in 0..depth {
+            accum += weight * Self::noise(&self, &temp_p);
+            weight *= 0.5;
+            temp_p *= 2.0;
+        }
+
+        return accum.abs();
+    }
+
+    fn perlin_interp(c: &[[[Vec3; 2]; 2]; 2], u: f32, v: f32, w:f32) -> f32{
+        let uu = u*u*(3.0-2.0*u);
+        let vv = v*v*(3.0-2.0*v);
+        let ww = w*w*(3.0-2.0*w);
+
+        let mut accum = 0.0;
+
+        for i in 0..2 {
+            for j in 0..2 {
+                for k in 0..2 {
+                    let weight_v = Vec3::new(u - i as f32, v - j as f32, w - k as f32);
+                    accum += (i as f32 * uu + (1-i) as f32 * (1.0-uu))
+                        * (j as f32 * vv + (1-j) as f32 * (1.0-vv))
+                        * (k as f32 * ww + (1-k) as f32 * (1.0-ww))
+                        * Vec3::dot(&c[i][j][k], &weight_v);
+                }
+            }
+        }
+
+        return accum;
     }
 }
