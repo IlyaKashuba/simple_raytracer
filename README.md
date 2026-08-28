@@ -4,7 +4,7 @@ How to run:
 
 cargo run
 
-where image.ppm is the name of the file with resulting image in PPM format
+after finishing the running there will an image.png file in the project folder
 
 <img width="1502" height="845" alt="image" src="https://github.com/user-attachments/assets/086ed0a5-2278-4aad-9a9f-ed1e90e9cf9b" />
 
