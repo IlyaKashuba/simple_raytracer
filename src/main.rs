@@ -211,12 +211,21 @@ fn quads() {
 fn simple_light() {
     let mut world = HittableList::new_empty();
 
-    let pertext = Arc::new(Texture::noise_texture(Perlin::new(), 4.0));
+    let pertext = Arc::new(Texture::noise_texture(Perlin::new(), 1.0));
+    
     let mat: Arc<dyn Material> = Arc::new(Lambertian::from_texture(pertext));
     world.add(Sphere::new_static(Point3::new(0.0, -1000.0, 0.0), 1000.0, Arc::clone(&mat)));
     world.add(Sphere::new_static(Point3::new(0.0, 2.0, 0.0), 2.0, Arc::clone(&mat)));
     
-    let diff_light: Arc<dyn Material> = Arc::new(DiffuseLight::new(Arc::new(Texture::solid_color(Color::new(1.0, 1.0, 1.0)))));
+    /*let earth_texture = Arc::new(Texture::image_texture("C:/Users/1/Documents/rust_projects/simple_raytracer/assets/earthmap.jpg"));
+    let earth_surface = Arc::new(Lambertian::from_texture(earth_texture));
+    let globe = Sphere::new_static(Point3::new(0.0, 2.0, 0.0), 2.0, earth_surface);
+    world.add(globe);*/
+
+    //let gray_mat: Arc<dyn Material> = Arc::new(Lambertian::from_color(Color::new(1.0, 0.0, 0.0)));
+    //world.add(Sphere::new_static(Point3::new(0.0, -1000.0, 0.0), 1000.0, Arc::clone(&gray_mat)));
+
+    let diff_light: Arc<dyn Material> = Arc::new(DiffuseLight::new(Arc::new(Texture::solid_color(Color::new(4.0, 4.0, 4.0)))));
     world.add(Sphere::new_static(Point3::new(0.0, 7.0, 0.0), 2.0, Arc::clone(&diff_light)));
     world.add(Quad::new(Point3::from_i32s(3, 1, -2), Vec3::from_i32s(2, 0, 0), Vec3::from_i32s(0, 2, 0), Arc::clone(&diff_light)));
     

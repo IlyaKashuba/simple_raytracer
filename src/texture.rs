@@ -49,6 +49,11 @@ impl Texture {
             Texture::NoiseTexture { noise , scale} => {
                 return Color::new(0.5, 0.5, 0.5) * (1.0 + (scale * p.z + 10.0 * noise.turb(p, 7)).sin());
             }
+            /*Texture::NoiseTexture { noise , scale} => {
+                let sin_arg = scale * p.x + 5.0 * noise.turb(p, 7);
+                let color_val = 0.5 * (1.0 + sin_arg.sin());
+                return Color::new(color_val, color_val, color_val);
+            }*/
         }
     }
 
