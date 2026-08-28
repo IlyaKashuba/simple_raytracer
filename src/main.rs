@@ -17,7 +17,7 @@ use color::Color;
 
 use objects::{HittableList, Sphere};
 use std::sync::Arc;
-use crate::{camera::Camera, material::{Dielectric, Lambertian, Material, Metal}, perlin_noise::Perlin, quad::Quad, texture::Texture};
+use crate::{camera::Camera, material::{Dielectric, DiffuseLight, Lambertian, Material, Metal}, perlin_noise::Perlin, quad::Quad, texture::Texture};
 
 
 fn bouncing_spheres() {
@@ -75,6 +75,7 @@ fn bouncing_spheres() {
     cam.image_width = 400; //1200
     cam.samples_per_pixel = 10; //100
     cam.max_depth = 50;
+    cam.background = Color::new(0.7, 0.8, 1.0);
 
 
     cam.vfov = 20.0;
@@ -103,6 +104,7 @@ fn checkered_spheres() {
     cam.image_width = 400; //1200
     cam.samples_per_pixel = 10; //100
     cam.max_depth = 50;
+    cam.background = Color::new(0.7, 0.8, 1.0);
 
 
     cam.vfov = 20.0;
@@ -126,6 +128,7 @@ fn earth() {
     cam.image_width = 400; //1200
     cam.samples_per_pixel = 10; //100
     cam.max_depth = 50;
+    cam.background = Color::new(0.7, 0.8, 1.0);
 
 
     cam.vfov = 20.0;
@@ -158,6 +161,7 @@ fn perlin_spheres() {
     cam.image_width = 400; //1200
     cam.samples_per_pixel = 10; //100
     cam.max_depth = 50;
+    cam.background = Color::new(0.7, 0.8, 1.0);
 
 
     cam.vfov = 20.0;
@@ -191,6 +195,7 @@ fn quads() {
     cam.image_width = 400; //1200
     cam.samples_per_pixel = 10; //100
     cam.max_depth = 50;
+    cam.background = Color::new(0.7, 0.8, 1.0);
 
 
     cam.vfov = 80.0;
@@ -203,13 +208,88 @@ fn quads() {
     cam.render(&world);
 }
 
+fn simple_light() {
+    let mut world = HittableList::new_empty();
+
+    let pertext = Arc::new(Texture::noise_texture(Perlin::new(), 4.0));
+    let mat: Arc<dyn Material> = Arc::new(Lambertian::from_texture(pertext));
+    world.add(Sphere::new_static(Point3::new(0.0, -1000.0, 0.0), 1000.0, Arc::clone(&mat)));
+    world.add(Sphere::new_static(Point3::new(0.0, 2.0, 0.0), 2.0, Arc::clone(&mat)));
+    
+    let diff_light: Arc<dyn Material> = Arc::new(DiffuseLight::new(Arc::new(Texture::solid_color(Color::new(1.0, 1.0, 1.0)))));
+    world.add(Sphere::new_static(Point3::new(0.0, 7.0, 0.0), 2.0, Arc::clone(&diff_light)));
+    world.add(Quad::new(Point3::from_i32s(3, 1, -2), Vec3::from_i32s(2, 0, 0), Vec3::from_i32s(0, 2, 0), Arc::clone(&diff_light)));
+    
+
+
+    let mut cam = Camera::new(16.0 / 9.0, 400);
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.image_width = 400; //1200
+    cam.samples_per_pixel = 30; //100
+    cam.max_depth = 50;
+    cam.background = color::BLACK;
+
+
+    cam.vfov = 20.0;
+    cam.look_from = Point3::new(26.0, 3.0, 6.0);
+    cam.look_at = Point3::new(0.0, 2.0, 0.0);
+    cam.vup = Vec3::new(0.0, 1.0, 0.0);
+
+    cam.defocus_angle = 0.0;
+    
+    cam.render(&world);
+}
+
+fn cornell_box() {
+    let mut world = HittableList::new_empty();
+
+    let red: Arc<dyn Material> = Arc::new(Lambertian::from_color(Color::new(0.65, 0.05, 0.05)));
+    let white: Arc<dyn Material> = Arc::new(Lambertian::from_color(Color::new(0.73, 0.73, 0.73)));
+    let green: Arc<dyn Material> = Arc::new(Lambertian::from_color(Color::new(0.12, 0.45, 0.15)));
+    let light: Arc<dyn Material> = Arc::new(Lambertian::from_color(Color::new(15.0, 15.0, 15.0)));
+    
+
+    /*world.add(Quad::new(Point3::from_i32s(555, 0, 0), Vec3::from_i32s(0, 555, 0), Vec3::from_i32s(0, 0, 555), green));
+    world.add(Quad::new(Point3::from_i32s(0, 0, 0), Vec3::from_i32s(0, 555, 0), Vec3::from_i32s(0, 0, 555), red));
+    world.add(Quad::new(Point3::from_i32s(343, 554, 332), Vec3::from_i32s(-130, 0, 0), Vec3::from_i32s(0, 0, -105), light));
+    world.add(Quad::new(Point3::from_i32s(0, 0, 0), Vec3::from_i32s(555, 0, 0), Vec3::from_i32s(0, 0, 555), Arc::clone(&white)));
+    world.add(Quad::new(Point3::from_i32s(555, 555, 555), Vec3::from_i32s(555, 555, 5550), Vec3::from_i32s(-555, 0, -555), Arc::clone(&white)));
+    world.add(Quad::new(Point3::from_i32s(0, 0, 555), Vec3::from_i32s(555, 0, 0), Vec3::from_i32s(0, 555, 0), Arc::clone(&white)));
+    */
+
+    /*let diff_light: Arc<dyn Material> = Arc::new(DiffuseLight::new(
+        Arc::new(Texture::solid_color(Color::new(20.0, 20.0, 20.0)))
+    ));
+    world.add(Sphere::new_static(Point3::new(278.0, 278.0, 0.0), 20.0, Arc::clone(&diff_light)));
+    */
+
+    let mut cam = Camera::new(16.0 / 9.0, 400);
+    cam.aspect_ratio = 1.0;
+    cam.image_width = 600; //1200
+    cam.samples_per_pixel = 10; //100
+    cam.max_depth = 50;
+    cam.background = Color::new(0.0, 0.0, 0.0);
+
+
+    cam.vfov = 40.0;
+    cam.look_from = Point3::from_i32s(278, 278, -800);
+    cam.look_at = Point3::from_i32s(278, 278, 0);
+    cam.vup = Vec3::new(0.0, 1.0, 0.0);
+
+    cam.defocus_angle = 0.0;
+    
+    cam.render(&world);
+}
+
 pub fn main() {
-    match 5 {
+    match 6 {
         1 => bouncing_spheres(),
         2 => checkered_spheres(),
         3 => earth(),
         4 => perlin_spheres(),
         5 => quads(),
+        6 => simple_light(),
+        7 => cornell_box(),
         _ => bouncing_spheres(),
     };
     
