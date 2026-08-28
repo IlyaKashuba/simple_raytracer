@@ -1,11 +1,15 @@
 use rand::{random_range};
 use std::sync::Arc;
 
-use crate::{color::{self, Color}, objects::HitRecord, ray::Ray, vec3::Vec3};
+use crate::{color::{self, Color}, objects::HitRecord, ray::Ray, texture::{self, TexCoords}, vec3::Vec3};
 use crate::texture::Texture;
+use crate::Point3;
 
 pub trait Material: Send + Sync {
     fn scatter(&self, ray_in: &Ray, hit_rec: &HitRecord) -> Option<(Ray, Color)>;
+    fn emitted(&self, uv: TexCoords, p: &Point3) -> Color {
+        return color::BLACK;
+    }
 }
 
 pub struct Lambertian {
@@ -104,5 +108,27 @@ impl Material for Dielectric {
 
         let scattered = Ray::new(hit_rec.p, direction, ray_in.time);
         return Some((scattered, attenuation));
+    }
+}
+
+pub struct DiffuseLight {
+    texture: Arc<Texture>,
+}
+
+impl DiffuseLight {
+    pub fn new(texture: Arc<Texture>) -> Self {
+        Self { texture }
+    }
+
+    
+}
+
+impl Material for DiffuseLight {
+    fn emitted(&self, uv: TexCoords, p: &Point3) -> Color {
+        return self.texture.value(uv, p);
+    }
+
+    fn scatter(&self, ray_in: &Ray, hit_rec: &HitRecord) -> Option<(Ray, Color)> {
+        return None;
     }
 }

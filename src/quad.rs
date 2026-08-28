@@ -71,6 +71,7 @@ impl Hittable for Quad {
         if let Some(uv) = Self::is_interior(alpha, beta) {
             let mut hit_rec = HitRecord::new(intersection_point, t, Arc::clone(&self.mat));
             hit_rec.uv = uv;
+            hit_rec.set_face_normal(ray, &self.normal);
             return Some(hit_rec);
         } else {
             return None

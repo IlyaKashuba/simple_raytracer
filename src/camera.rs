@@ -22,6 +22,7 @@ pub struct Camera {
     pub vup: Vec3,
     pub defocus_angle: f32,
     pub focus_dist: f32,
+    pub background: Color,
     image_height: u32,
     center: Point3,
     pixel00_loc: Point3,
@@ -33,6 +34,7 @@ pub struct Camera {
     w: Vec3,
     defocus_disk_u: Vec3,
     defocus_disk_v: Vec3,
+    
 }
 
 impl Camera {
@@ -59,6 +61,7 @@ impl Camera {
             w: Vec3::new(0.0, 0.0, 0.0),
             defocus_disk_u: Vec3::new(0.0, 0.0, 0.0),
             defocus_disk_v: Vec3::new(0.0, 0.0, 0.0),
+            background: color::BLACK,
         }
     }
 
@@ -86,21 +89,6 @@ impl Camera {
         }).collect();
 
         let pixels: Vec<u8> = row_pixels.into_iter().flatten().collect();
-
-        /*let mut imgbuf = image::ImageBuffer::new(self.image_width, self.image_height);
-        
-
-        for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
-
-            let mut pixel_color = Color::new(0.0, 0.0, 0.0);
-                for _ in 0..self.samples_per_pixel {
-                    let ray: Ray = self.get_ray(x, y);
-                    pixel_color += self.ray_color(&ray, self.max_depth, world);
-                }
-
-            *pixel = image::Rgb(color::to_rgb8(pixel_color * self.pixel_samples_scale));
-        }
-        imgbuf.save("image.png").unwrap();*/
         
         let imgbuf: image::ImageBuffer<Rgb<u8>, Vec<u8>> = image::ImageBuffer::from_raw(self.image_width, self.image_height, pixels).unwrap();
         imgbuf.save("image.png").unwrap();
@@ -149,7 +137,7 @@ impl Camera {
             return color::BLACK;
         }
 
-        if let Some(hit_rec) = world.hit(&ray, &Interval::new(0.001, f32::INFINITY)) {
+        /*if let Some(hit_rec) = world.hit(&ray, &Interval::new(0.001, f32::INFINITY)) {
             if let Some((scattered, attenuation)) = hit_rec.mat.scatter(ray, &hit_rec) {
                 return attenuation * self.ray_color(&scattered, depth-1, world);
             }
@@ -158,7 +146,21 @@ impl Camera {
 
         let unit_direction = ray.dir.unit_length();
         let a = 0.5 * (unit_direction.y + 1.0);
-        return (1.0 - a)*Color::new(1.0, 1.0, 1.0) + a*Color::new(0.5, 0.7, 1.0);
+        return (1.0 - a)*Color::new(1.0, 1.0, 1.0) + a*Color::new(0.5, 0.7, 1.0);*/
+
+        //let hit_rec = world.hit(&ray, &Interval::new(0.001, f32::INFINITY));
+        if let Some(hit_rec) = world.hit(&ray, &Interval::new(0.001, f32::INFINITY)) {
+            let color_from_emission = hit_rec.mat.emitted(hit_rec.uv, &hit_rec.p);
+
+            if let Some((scattered, attenuation)) = hit_rec.mat.scatter(ray, &hit_rec) {
+                let color_from_scatter = attenuation * self.ray_color(&scattered, depth-1, world);
+                return color_from_emission + color_from_scatter;
+            } else {
+                return color_from_emission;
+            }
+        } else {
+            return self.background;
+        }
     }
 
     fn get_ray(&self, i: u32, j: u32) -> Ray {
