@@ -255,7 +255,7 @@ fn cornell_box() {
     let red: Arc<dyn Material> = Arc::new(Lambertian::from_color(Color::new(0.65, 0.05, 0.05)));
     let white: Arc<dyn Material> = Arc::new(Lambertian::from_color(Color::new(0.73, 0.73, 0.73)));
     let green: Arc<dyn Material> = Arc::new(Lambertian::from_color(Color::new(0.12, 0.45, 0.15)));
-    let light: Arc<dyn Material> = Arc::new(Lambertian::from_color(Color::new(15.0, 15.0, 15.0)));
+    let light: Arc<dyn Material> = Arc::new(DiffuseLight::new(Arc::new(Texture::SolidColorTerxture { albedo: Color::new(15.0, 15.0, 15.0) })));
     
 
     world.add(Quad::new(Point3::from_i32s(555, 0, 0), Vec3::from_i32s(0, 555, 0), Vec3::from_i32s(0, 0, 555), green));
@@ -270,7 +270,7 @@ fn cornell_box() {
     cam.aspect_ratio = 1.0;
     cam.image_width = 600; //1200
     cam.samples_per_pixel = 20; //100
-    cam.max_depth = 50;
+    cam.max_depth = 30;
     cam.background = Color::new(0.0, 0.0, 0.0);
 
 
