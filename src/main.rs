@@ -258,24 +258,18 @@ fn cornell_box() {
     let light: Arc<dyn Material> = Arc::new(Lambertian::from_color(Color::new(15.0, 15.0, 15.0)));
     
 
-    /*world.add(Quad::new(Point3::from_i32s(555, 0, 0), Vec3::from_i32s(0, 555, 0), Vec3::from_i32s(0, 0, 555), green));
+    world.add(Quad::new(Point3::from_i32s(555, 0, 0), Vec3::from_i32s(0, 555, 0), Vec3::from_i32s(0, 0, 555), green));
     world.add(Quad::new(Point3::from_i32s(0, 0, 0), Vec3::from_i32s(0, 555, 0), Vec3::from_i32s(0, 0, 555), red));
     world.add(Quad::new(Point3::from_i32s(343, 554, 332), Vec3::from_i32s(-130, 0, 0), Vec3::from_i32s(0, 0, -105), light));
     world.add(Quad::new(Point3::from_i32s(0, 0, 0), Vec3::from_i32s(555, 0, 0), Vec3::from_i32s(0, 0, 555), Arc::clone(&white)));
-    world.add(Quad::new(Point3::from_i32s(555, 555, 555), Vec3::from_i32s(555, 555, 5550), Vec3::from_i32s(-555, 0, -555), Arc::clone(&white)));
+    world.add(Quad::new(Point3::from_i32s(555, 555, 555), Vec3::from_i32s(-555, 0, 0), Vec3::from_i32s(0, 0, -555), Arc::clone(&white)));
     world.add(Quad::new(Point3::from_i32s(0, 0, 555), Vec3::from_i32s(555, 0, 0), Vec3::from_i32s(0, 555, 0), Arc::clone(&white)));
-    */
-
-    /*let diff_light: Arc<dyn Material> = Arc::new(DiffuseLight::new(
-        Arc::new(Texture::solid_color(Color::new(20.0, 20.0, 20.0)))
-    ));
-    world.add(Sphere::new_static(Point3::new(278.0, 278.0, 0.0), 20.0, Arc::clone(&diff_light)));
-    */
+    
 
     let mut cam = Camera::new(16.0 / 9.0, 400);
     cam.aspect_ratio = 1.0;
     cam.image_width = 600; //1200
-    cam.samples_per_pixel = 10; //100
+    cam.samples_per_pixel = 20; //100
     cam.max_depth = 50;
     cam.background = Color::new(0.0, 0.0, 0.0);
 
@@ -291,7 +285,7 @@ fn cornell_box() {
 }
 
 pub fn main() {
-    match 6 {
+    match 7 {
         1 => bouncing_spheres(),
         2 => checkered_spheres(),
         3 => earth(),
