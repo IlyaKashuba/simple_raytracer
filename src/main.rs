@@ -11,6 +11,7 @@ pub mod texture;
 pub mod perlin_noise;
 pub mod quad;
 pub mod instance;
+pub mod volumes;
 
 use rand::random_range;
 use vec3::{Point3, Vec3};
@@ -19,7 +20,7 @@ use color::Color;
 use objects::{HittableList, Sphere};
 use instance::{RotateY, Translate};
 use std::sync::Arc;
-use crate::{camera::Camera, material::{Dielectric, DiffuseLight, Lambertian, Material, Metal}, objects::Hittable, perlin_noise::Perlin, quad::Quad, texture::Texture};
+use crate::{camera::Camera, material::{Dielectric, DiffuseLight, Lambertian, Material, Metal}, objects::Hittable, perlin_noise::Perlin, quad::Quad, texture::Texture, volumes::ConstantMedium};
 
 
 fn bouncing_spheres() {
@@ -299,8 +300,55 @@ fn cornell_box() {
     cam.render(&world);
 }
 
+fn cornell_smoke() {
+    let mut world = HittableList::new_empty();
+
+    let red: Arc<dyn Material> = Arc::new(Lambertian::from_color(Color::new(0.65, 0.05, 0.05)));
+    let white: Arc<dyn Material> = Arc::new(Lambertian::from_color(Color::new(0.73, 0.73, 0.73)));
+    let green: Arc<dyn Material> = Arc::new(Lambertian::from_color(Color::new(0.12, 0.45, 0.15)));
+    let light: Arc<dyn Material> = Arc::new(DiffuseLight::new(Arc::new(Texture::SolidColorTerxture { albedo: Color::new(7.0, 7.0, 7.0) })));
+    
+
+    world.add(Quad::new(Point3::from_i32s(555, 0, 0), Vec3::from_i32s(0, 555, 0), Vec3::from_i32s(0, 0, 555), green));
+    world.add(Quad::new(Point3::from_i32s(0, 0, 0), Vec3::from_i32s(0, 555, 0), Vec3::from_i32s(0, 0, 555), red));
+    world.add(Quad::new(Point3::from_i32s(113, 554, 127), Vec3::from_i32s(330, 0, 0), Vec3::from_i32s(0, 0, 305), light));
+    world.add(Quad::new(Point3::from_i32s(0, 555, 0), Vec3::from_i32s(555, 0, 0), Vec3::from_i32s(0, 0, 555), Arc::clone(&white)));
+    world.add(Quad::new(Point3::from_i32s(0, 0, 0), Vec3::from_i32s(555, 0, 0), Vec3::from_i32s(0, 0, -555), Arc::clone(&white)));
+    world.add(Quad::new(Point3::from_i32s(0, 0, 555), Vec3::from_i32s(555, 0, 0), Vec3::from_i32s(0, 555, 0), Arc::clone(&white)));
+    
+
+    let box1: Arc<dyn Hittable> = Arc::new(Quad::create_box(Point3::from_i32s(0, 0, 0), Point3::from_i32s(165, 330, 165), Arc::clone(&white)));
+    let box1: Arc<dyn Hittable> = Arc::new(RotateY::new(box1, 15.0));
+    let box1 = Translate::new(box1, Vec3::new(265.0, 0.0, 295.0));
+    
+    let box2: Arc<dyn Hittable> = Arc::new(Quad::create_box(Point3::from_i32s(0, 0, 0), Point3::from_i32s(165, 165, 165), Arc::clone(&white)));
+    let box2: Arc<dyn Hittable> = Arc::new(RotateY::new(box2, -18.0));
+    let box2 = Translate::new(box2, Vec3::new(130.0, 0.0, 65.0));
+    
+    world.add(ConstantMedium::from_color(Arc::new(box1), 0.01, color::BLACK));
+    world.add(ConstantMedium::from_color(Arc::new(box2), 0.01, color::WHITE));
+
+    let mut cam = Camera::new(16.0 / 9.0, 400);
+    cam.aspect_ratio = 1.0;
+    cam.image_width = 600; //1200
+
+    cam.samples_per_pixel = 5; //100
+    cam.max_depth = 10;
+    cam.background = Color::new(0.0, 0.0, 0.0);
+
+
+    cam.vfov = 40.0;
+    cam.look_from = Point3::from_i32s(278, 278, -800);
+    cam.look_at = Point3::from_i32s(278, 278, 0);
+    cam.vup = Vec3::new(0.0, 1.0, 0.0);
+
+    cam.defocus_angle = 0.0;
+    
+    cam.render(&world);
+}
+
 pub fn main() {
-    match 7 {
+    match 8 {
         1 => bouncing_spheres(),
         2 => checkered_spheres(),
         3 => earth(),
@@ -308,6 +356,7 @@ pub fn main() {
         5 => quads(),
         6 => simple_light(),
         7 => cornell_box(),
+        8 => cornell_smoke(),
         _ => bouncing_spheres(),
     };
     
