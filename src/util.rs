@@ -1,4 +1,5 @@
 use std::f32::{consts::PI};
+use std::ops::Add;
 
 
 pub fn degrees_to_radians(degrees: f32) -> f32 {
@@ -55,3 +56,12 @@ impl Interval {
 
 }
 
+impl Add<f32> for Interval {
+    type Output = Interval;
+    fn add(self, rhs: f32) -> Self::Output {
+        Interval {
+            min: self.min + rhs,
+            max: self.max + rhs,
+        }
+    }
+}

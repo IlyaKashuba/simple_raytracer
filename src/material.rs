@@ -1,7 +1,7 @@
 use rand::{random_range};
 use std::sync::Arc;
 
-use crate::{color::{self, Color}, objects::HitRecord, ray::Ray, texture::{self, TexCoords}, vec3::Vec3};
+use crate::{color::{self, Color}, objects::HitRecord, ray::Ray, texture::TexCoords, vec3::Vec3};
 use crate::texture::Texture;
 use crate::Point3;
 

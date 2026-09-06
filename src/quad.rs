@@ -1,5 +1,5 @@
 
-use crate::objects::{HitRecord, Hittable};
+use crate::objects::{HitRecord, Hittable, HittableList};
 use crate::texture::TexCoords;
 use crate::util::Interval;
 use crate::{aabb::Aabb, material::Material};
@@ -46,6 +46,26 @@ impl Quad {
             return Some(TexCoords(a, b));
         }
         
+    }
+
+    pub fn create_box(a: Point3, b: Point3, mat: Arc<dyn Material>) -> HittableList {
+        let mut sides = HittableList::new_empty();
+
+        let min = Point3::new(a.x.min(b.x), a.y.min(b.y), a.z.min(b.z));
+        let max = Point3::new(a.x.max(b.x), a.y.max(b.y), a.z.max(b.z));
+
+        let dx = Vec3::new(max.x - min.x, 0.0, 0.0);
+        let dy = Vec3::new(0.0, max.y - min.y, 0.0);
+        let dz = Vec3::new(0.0, 0.0, max.z - min.z);
+
+        sides.add(Quad::new(Point3::new(min.x, min.y, max.z), dx, dy, Arc::clone(&mat))); //front
+        sides.add(Quad::new(Point3::new(max.x, min.y, max.z), -dz, dy, Arc::clone(&mat))); //right
+        sides.add(Quad::new(Point3::new(max.x, min.y, min.z), -dx, dy, Arc::clone(&mat))); //back
+        sides.add(Quad::new(Point3::new(min.x, min.y, min.z), dz, dy, Arc::clone(&mat))); //left
+        sides.add(Quad::new(Point3::new(min.x, max.y, max.z), dx, -dz, Arc::clone(&mat))); //top
+        sides.add(Quad::new(Point3::new(min.x, min.y, min.z), dx, dz, Arc::clone(&mat))); //bottom
+    
+        return sides;
     }
 }
 

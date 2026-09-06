@@ -10,14 +10,16 @@ pub mod bvh;
 pub mod texture;
 pub mod perlin_noise;
 pub mod quad;
+pub mod instance;
 
 use rand::random_range;
 use vec3::{Point3, Vec3};
 use color::Color;
 
 use objects::{HittableList, Sphere};
+use instance::{RotateY, Translate};
 use std::sync::Arc;
-use crate::{camera::Camera, material::{Dielectric, DiffuseLight, Lambertian, Material, Metal}, perlin_noise::Perlin, quad::Quad, texture::Texture};
+use crate::{camera::Camera, material::{Dielectric, DiffuseLight, Lambertian, Material, Metal}, objects::Hittable, perlin_noise::Perlin, quad::Quad, texture::Texture};
 
 
 fn bouncing_spheres() {
@@ -267,12 +269,23 @@ fn cornell_box() {
     world.add(Quad::new(Point3::from_i32s(0, 0, 555), Vec3::from_i32s(555, 0, 0), Vec3::from_i32s(0, 555, 0), Arc::clone(&white)));
     
 
+    let box1: Arc<dyn Hittable> = Arc::new(Quad::create_box(Point3::from_i32s(0, 0, 0), Point3::from_i32s(165, 330, 165), Arc::clone(&white)));
+    let box1: Arc<dyn Hittable> = Arc::new(RotateY::new(box1, 15.0));
+    let box1 = Translate::new(box1, Vec3::new(265.0, 0.0, 295.0));
+    
+    let box2: Arc<dyn Hittable> = Arc::new(Quad::create_box(Point3::from_i32s(0, 0, 0), Point3::from_i32s(165, 165, 165), Arc::clone(&white)));
+    let box2: Arc<dyn Hittable> = Arc::new(RotateY::new(box2, -18.0));
+    let box2 = Translate::new(box2, Vec3::new(130.0, 0.0, 65.0));
+    
+    world.add(box1);
+    world.add(box2);
+
     let mut cam = Camera::new(16.0 / 9.0, 400);
     cam.aspect_ratio = 1.0;
     cam.image_width = 600; //1200
 
-    cam.samples_per_pixel = 20; //100
-    cam.max_depth = 30;
+    cam.samples_per_pixel = 5; //100
+    cam.max_depth = 10;
     cam.background = Color::new(0.0, 0.0, 0.0);
 
 

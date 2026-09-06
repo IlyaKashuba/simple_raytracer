@@ -3,15 +3,12 @@ use std::sync::Arc;
 
 use crate::{aabb::Aabb, color, material::{Lambertian, Material}, ray::Ray, texture::TexCoords, util::Interval, vec3::{Point3, Vec3}};
 
-
-//#[derive(PartialEq)]
 pub struct HitRecord {
     pub p: Point3,
     pub normal: Vec3,
     pub t: f32,
     pub uv: TexCoords,
     pub front_face: bool,
-    //pub mat: &'a dyn Material,
     pub mat: Arc<dyn Material>,
 }
 
@@ -38,6 +35,7 @@ impl HitRecord {
 
 pub trait Hittable: Sync + Send{
     fn hit(&self, ray: &Ray, ray_t: &Interval) -> Option<HitRecord>;
+
     fn boinding_box(&self) -> &Aabb;
 }
 
@@ -168,3 +166,4 @@ impl Hittable for HittableList {
         return &self.bbox;
     }
 }
+
